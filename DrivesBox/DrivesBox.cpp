@@ -49,14 +49,14 @@ DrivesBoxModel::DrivesBoxModel()
 {
 	foreach(QFileInfo fi, QDir::drives())
 	{
+		QString drivePath = fi.absoluteFilePath();
+		
 		char name[MAX_PATH+1] = {0};
 		char fileSystemNameBuffer[MAX_PATH+1] = {0};
-		GetVolumeInformationA(fi.absoluteFilePath().toAscii().data(), name, MAX_PATH, NULL, NULL, NULL, fileSystemNameBuffer, MAX_PATH);
-		UINT type = GetDriveTypeA(fi.absoluteFilePath().toAscii().data());
+		GetVolumeInformationA(drivePath.toAscii().data(), name, MAX_PATH, NULL, NULL, NULL, fileSystemNameBuffer, MAX_PATH);
+		UINT type = GetDriveTypeA(drivePath.toAscii().data());
 		
 		DrivesBoxModelItem item;
-		item.name = QString("%1 (%2)").arg(name).arg(fi.absoluteFilePath());
-		qDebug() << "drive" << item.name;
 		
 		switch(type)
 		{
@@ -70,6 +70,11 @@ DrivesBoxModel::DrivesBoxModel()
 			default:
 				item.icon = QApplication::style()->standardIcon(QStyle::SP_DirIcon);
 		}
+		
+		if(name[0])
+			item.name = QString("%1 (%2)").arg(name).arg(drivePath.left(2));
+		else
+			item.name = drivePath.left(2);
 		
 		drives.append(item);
 	}
