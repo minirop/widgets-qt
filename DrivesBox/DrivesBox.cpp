@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QApplication>
+#include <QFileIconProvider>
 #include <QStyle>
 
 #ifdef Q_OS_WIN32
@@ -47,6 +48,8 @@ DrivesBox::DrivesBox(QWidget * parent) : QComboBox(parent)
 #ifdef Q_OS_WIN32
 DrivesBoxModel::DrivesBoxModel()
 {
+	QFileIconProvider iconProvider;
+	
 	foreach(QFileInfo fi, QDir::drives())
 	{
 		QString drivePath = fi.absoluteFilePath();
@@ -54,22 +57,9 @@ DrivesBoxModel::DrivesBoxModel()
 		char name[MAX_PATH+1] = {0};
 		char fileSystemNameBuffer[MAX_PATH+1] = {0};
 		GetVolumeInformationA(drivePath.toAscii().data(), name, MAX_PATH, NULL, NULL, NULL, fileSystemNameBuffer, MAX_PATH);
-		UINT type = GetDriveTypeA(drivePath.toAscii().data());
 		
 		DrivesBoxModelItem item;
-		
-		switch(type)
-		{
-			case DRIVE_UNKNOWN:
-			case DRIVE_NO_ROOT_DIR:
-			case DRIVE_REMOVABLE:
-			case DRIVE_FIXED:
-			case DRIVE_REMOTE:
-			case DRIVE_CDROM:
-			case DRIVE_RAMDISK:
-			default:
-				item.icon = QApplication::style()->standardIcon(QStyle::SP_DirIcon);
-		}
+		item.icon = iconProvider.icon(fi);
 		
 		if(name[0])
 			item.name = QString("%1 (%2)").arg(name).arg(drivePath.left(2));
